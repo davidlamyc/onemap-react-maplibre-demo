@@ -2,6 +2,8 @@ import type { NextPage } from "next";
 import { useRef } from "react";
 import Map, { Layer, MapRef, Marker, Source } from "react-map-gl/maplibre";
 import { useEffect, useState } from 'react';
+import { ConfigProvider, Breadcrumb, Layout, Menu, theme, Button, Checkbox, Form, Input } from 'antd/lib';
+const { Header, Content, Footer } = Layout;
 
 // const locations = [
 //   {
@@ -16,24 +18,17 @@ import { useEffect, useState } from 'react';
 //   },
 // ];
 
-const IndexPage: NextPage = () => {
-  const [locations, setLocations] = useState([{
-    latitude: 1.3614206826,
-    longitude: 103.8430844601,
-    name: "BLK 246-256 BISHAN STREET 22",
-  },
-  {
-    latitude: 1.3609610362,
-    longitude: 103.8436216081,
-    name: "BLK 246A BISHAN STREET 22",
-  }]);
-  const [value, setValue] = useState("");
+const items = Array.from({ length: 1 }).map((_, index) => ({
+  key: String(index + 1),
+  label: 'Carpark Availability',
+}));
 
-  // 200640
-  // 461431
-  const handleChange = (e) => {
-    setValue(e.target.value);
-  }
+const IndexPage: NextPage = () => {
+  // const {
+  //   token: { colorBgContainer, borderRadiusLG },
+  // } = theme.useToken();
+  const [locations, setLocations] = useState([]);
+  const [value, setValue] = useState("");
 
   const mapRef = useRef<MapRef>(null);
 
@@ -63,41 +58,132 @@ const IndexPage: NextPage = () => {
       });
   }, [value]);
 
+  const onFinish = (values) => {
+    console.log('Success:', values);
+    setValue(values.postal_code);
+  };
+  const onFinishFailed = (errorInfo) => {
+    console.log('Failed:', errorInfo);
+  };
+
   return (
-    <>
-      <input value={value} onChange={handleChange} />
-      <Map
-        ref={mapRef}
-        maxBounds={[103.596, 1.1443, 104.1, 1.4835]}
-        mapStyle="https://www.onemap.gov.sg/maps/json/raster/mbstyle/Grey.json"
-        style={{
-          width: "90vw",
-          height: "90vh",
-        }}
-      >
-        {locations.map((location) => (
-          <Marker
-            key={location.name}
-            latitude={location.latitude}
-            longitude={location.longitude}
+    <ConfigProvider
+      theme={{
+        // 1. Use dark algorithm
+        algorithm: theme.darkAlgorithm,
+
+        // 2. Combine dark algorithm and compact algorithm
+        // algorithm: [theme.darkAlgorithm, theme.compactAlgorithm],
+      }}
+    >
+      <Layout>
+        <Header
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 1,
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <div className="demo-logo" />
+          <Menu
+            theme="dark"
+            mode="horizontal"
+            defaultSelectedKeys={['2']}
+            items={items}
+            style={{ flex: 1, minWidth: 0 }}
+          />
+        </Header>
+        <Content style={{ padding: '0 48px' }}>
+          <Breadcrumb style={{ margin: '16px 0' }}>
+            {/* <Breadcrumb.Item>Home</Breadcrumb.Item>
+          <Breadcrumb.Item>List</Breadcrumb.Item>
+          <Breadcrumb.Item>App</Breadcrumb.Item> */}
+          </Breadcrumb>
+          <div
+            style={{
+              padding: 24,
+              minHeight: 380,
+              // background: colorBgContainer,
+              // borderRadius: borderRadiusLG,
+            }}
           >
-            <div
-              className="mrt-marker"
-              onClick={() => flyTo([location.longitude, location.latitude])}
+            <Form
+              name="basic"
+              labelCol={{
+                // span: 8,
+              }}
+              wrapperCol={{
+                span: 16,
+              }}
+              style={{
+                maxWidth: 600,
+              }}
+              initialValues={{
+                remember: true,
+              }}
+              onFinish={onFinish}
+              onFinishFailed={onFinishFailed}
+              autoComplete="off"
             >
-              {location.name}
-              <style jsx>{`
+              <Form.Item
+                label="Postal Code"
+                name="postal_code"
+                rules={[
+                  {
+                    // required: true,
+                    message: 'Please input your postal code!',
+                  },
+                ]}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item label={null}>
+                <Button type="primary" htmlType="submit">
+                  Submit
+                </Button>
+              </Form.Item>
+            </Form>
+            <Map
+              ref={mapRef}
+              maxBounds={[103.596, 1.1443, 104.1, 1.4835]}
+              mapStyle="https://www.onemap.gov.sg/maps/json/raster/mbstyle/Grey.json"
+              style={{
+                width: "90vw",
+                height: "90vh",
+              }}
+            >
+              {locations.map((location) => (
+                <Marker
+                  key={location.name}
+                  latitude={location.latitude}
+                  longitude={location.longitude}
+                >
+                  <div
+                    className="mrt-marker"
+                    onClick={() => flyTo([location.longitude, location.latitude])}
+                  >
+                    {location.name}
+                    <style jsx>{`
               .mrt-marker {
                 background: red;
                 color: white;
                 padding: 4px;
               }
             `}</style>
-            </div>
-          </Marker>
-        ))}
-      </Map>
-    </>
+                  </div>
+                </Marker>
+              ))}
+            </Map>
+          </div>
+        </Content>
+        <Footer style={{ textAlign: 'center' }}>
+          Ant Design ©{new Date().getFullYear()} Created by Ant UED
+        </Footer>
+      </Layout>
+    </ConfigProvider>
   );
 };
 
